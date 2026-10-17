@@ -7,9 +7,7 @@
   <title>My Task Manager</title>
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       font-family: Arial, sans-serif;
@@ -21,7 +19,7 @@
 
     .container {
       max-width: 750px;
-      margin: 0 auto;
+      margin: auto;
       background: white;
       padding: 28px;
       border-radius: 16px;
@@ -67,19 +65,23 @@
       font-weight: bold;
     }
 
-    button:hover {
-      background: #1d4ed8;
-    }
+    button:hover { background: #1d4ed8; }
 
     .stats {
       display: flex;
       justify-content: space-between;
       gap: 10px;
+      flex-wrap: wrap;
       background: #eff6ff;
       padding: 14px;
       border-radius: 10px;
       margin-bottom: 18px;
-      flex-wrap: wrap;
+    }
+
+    .search-box {
+      width: 100%;
+      margin-bottom: 16px;
+      padding: 12px;
     }
 
     .filters {
@@ -94,9 +96,7 @@
       color: #334155;
     }
 
-    .filter-btn:hover {
-      background: #cbd5e1;
-    }
+    .filter-btn:hover { background: #cbd5e1; }
 
     .filter-btn.active {
       background: #2563eb;
@@ -130,8 +130,8 @@
     }
 
     .task-name {
-      overflow-wrap: anywhere;
       font-weight: bold;
+      overflow-wrap: anywhere;
     }
 
     .completed .task-name {
@@ -154,20 +154,9 @@
       font-weight: bold;
     }
 
-    .High {
-      background: #fee2e2;
-      color: #b91c1c;
-    }
-
-    .Medium {
-      background: #fef3c7;
-      color: #92400e;
-    }
-
-    .Low {
-      background: #dcfce7;
-      color: #166534;
-    }
+    .High { background: #fee2e2; color: #b91c1c; }
+    .Medium { background: #fef3c7; color: #92400e; }
+    .Low { background: #dcfce7; color: #166534; }
 
     .delete-btn {
       background: #fee2e2;
@@ -175,9 +164,7 @@
       padding: 8px 10px;
     }
 
-    .delete-btn:hover {
-      background: #fecaca;
-    }
+    .delete-btn:hover { background: #fecaca; }
 
     .empty {
       text-align: center;
@@ -186,17 +173,9 @@
     }
 
     @media (max-width: 650px) {
-      form {
-        grid-template-columns: 1fr;
-      }
-
-      .container {
-        padding: 20px;
-      }
-
-      .stats {
-        flex-direction: column;
-      }
+      form { grid-template-columns: 1fr; }
+      .container { padding: 20px; }
+      .stats { flex-direction: column; }
     }
   </style>
 </head>
@@ -207,13 +186,8 @@
     <p class="subtitle">Organize your work. Track your progress.</p>
 
     <form id="taskForm">
-      <input
-        type="text"
-        id="taskInput"
-        placeholder="Enter a new task..."
-        aria-label="Task name"
-        required
-      >
+      <input type="text" id="taskInput"
+        placeholder="Enter a new task..." aria-label="Task name" required>
 
       <select id="taskPriority" aria-label="Task priority">
         <option value="High">High priority</option>
@@ -221,12 +195,7 @@
         <option value="Low">Low priority</option>
       </select>
 
-      <input
-        type="date"
-        id="taskDueDate"
-        aria-label="Task due date"
-      >
-
+      <input type="date" id="taskDueDate" aria-label="Task due date">
       <button type="submit">Add Task</button>
     </form>
 
@@ -236,16 +205,18 @@
       <span>Completed: <strong id="completedCount">0</strong></span>
     </section>
 
+    <input
+      type="search"
+      id="searchInput"
+      class="search-box"
+      placeholder="Search tasks..."
+      aria-label="Search tasks"
+    >
+
     <div class="filters" aria-label="Filter tasks">
-      <button type="button" class="filter-btn active" data-filter="All">
-        All Tasks
-      </button>
-      <button type="button" class="filter-btn" data-filter="Pending">
-        Pending
-      </button>
-      <button type="button" class="filter-btn" data-filter="Completed">
-        Completed
-      </button>
+      <button type="button" class="filter-btn active" data-filter="All">All Tasks</button>
+      <button type="button" class="filter-btn" data-filter="Pending">Pending</button>
+      <button type="button" class="filter-btn" data-filter="Completed">Completed</button>
     </div>
 
     <ul id="taskList"></ul>
@@ -257,13 +228,13 @@
     const taskInput = document.getElementById("taskInput");
     const taskPriority = document.getElementById("taskPriority");
     const taskDueDate = document.getElementById("taskDueDate");
+    const searchInput = document.getElementById("searchInput");
     const taskList = document.getElementById("taskList");
     const emptyMessage = document.getElementById("emptyMessage");
 
     const totalCount = document.getElementById("totalCount");
     const pendingCount = document.getElementById("pendingCount");
     const completedCount = document.getElementById("completedCount");
-
     const filterButtons = document.querySelectorAll(".filter-btn");
 
     let currentFilter = "All";
@@ -275,9 +246,7 @@
           localStorage.getItem("myTaskManagerTasks")
         );
 
-        if (!Array.isArray(saved)) {
-          return [];
-        }
+        if (!Array.isArray(saved)) return [];
 
         return saved
           .filter(task => task && typeof task.text === "string")
@@ -286,11 +255,8 @@
             text: task.text,
             completed: Boolean(task.completed),
             priority: ["High", "Medium", "Low"].includes(task.priority)
-              ? task.priority
-              : "Medium",
-            dueDate: typeof task.dueDate === "string"
-              ? task.dueDate
-              : ""
+              ? task.priority : "Medium",
+            dueDate: typeof task.dueDate === "string" ? task.dueDate : ""
           }));
       } catch (error) {
         return [];
@@ -317,25 +283,30 @@
       completedCount.textContent =
         tasks.filter(task => task.completed).length;
 
+      const searchText = searchInput.value.trim().toLowerCase();
+
       const filteredTasks = tasks.filter(task => {
-        if (currentFilter === "Pending") {
-          return !task.completed;
-        }
+        const matchesSearch = task.text.toLowerCase().includes(searchText);
 
-        if (currentFilter === "Completed") {
-          return task.completed;
-        }
+        const matchesStatus =
+          currentFilter === "All" ||
+          (currentFilter === "Pending" && !task.completed) ||
+          (currentFilter === "Completed" && task.completed);
 
-        return true;
+        return matchesSearch && matchesStatus;
       });
 
       emptyMessage.style.display =
         filteredTasks.length === 0 ? "block" : "none";
 
       if (filteredTasks.length === 0) {
-        emptyMessage.textContent = tasks.length === 0
-          ? "No tasks yet. Add your first task!"
-          : "No tasks in this filter.";
+        if (tasks.length === 0) {
+          emptyMessage.textContent = "No tasks yet. Add your first task!";
+        } else if (searchText !== "") {
+          emptyMessage.textContent = "No tasks match your search.";
+        } else {
+          emptyMessage.textContent = "No tasks in this filter.";
+        }
       }
 
       filteredTasks.forEach(task => {
@@ -397,10 +368,7 @@
       event.preventDefault();
 
       const text = taskInput.value.trim();
-
-      if (!text) {
-        return;
-      }
+      if (!text) return;
 
       tasks.push({
         id: Date.now() + Math.random(),
@@ -417,25 +385,25 @@
       renderTasks();
     });
 
-    filterButtons.forEach(button => {
-      button.addEventListener("click", () => {
-        currentFilter = button.dataset.filter;
-
-        filterButtons.forEach(filterButton => {
-          const isActive = filterButton === button;
-          filterButton.classList.toggle("active", isActive);
-          filterButton.setAttribute("aria-pressed", String(isActive));
-        });
-
-        renderTasks();
-      });
-    });
+    searchInput.addEventListener("input", renderTasks);
 
     filterButtons.forEach(button => {
       button.setAttribute(
         "aria-pressed",
         String(button.dataset.filter === currentFilter)
       );
+
+      button.addEventListener("click", () => {
+        currentFilter = button.dataset.filter;
+
+        filterButtons.forEach(filterButton => {
+          const active = filterButton === button;
+          filterButton.classList.toggle("active", active);
+          filterButton.setAttribute("aria-pressed", String(active));
+        });
+
+        renderTasks();
+      });
     });
 
     renderTasks();
