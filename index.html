@@ -8,7 +8,7 @@
 
     <style>
         body {
-            background-color: lightblue;
+            background-color: #eaf2ff;
             font-family: Arial, sans-serif;
             text-align: center;
             margin: 0;
@@ -16,41 +16,47 @@
         }
 
         h1 {
-            color: darkblue;
+            color: #173b75;
         }
 
         .task-container {
-            max-width: 500px;
+            max-width: 550px;
             margin: 30px auto;
             padding: 25px;
-            background-color: white;
+            background: white;
             border-radius: 12px;
+            box-shadow: 0 4px 16px #00000012;
         }
 
-        input {
-            width: 65%;
-            padding: 10px;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+        form {
+            display: flex;
+            gap: 8px;
+        }
+
+        #taskInput {
+            flex: 1;
+            min-width: 0;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
         }
 
         button {
             padding: 10px 14px;
-            background-color: darkblue;
+            background: #2457a7;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 6px;
             cursor: pointer;
         }
 
         button:hover {
-            background-color: #163e8a;
+            background: #173b75;
         }
 
         ul {
-            padding: 0;
             list-style: none;
+            padding: 0;
         }
 
         li {
@@ -59,27 +65,45 @@
             gap: 10px;
             margin-top: 12px;
             padding: 12px;
-            background-color: #f1f5f9;
+            background: #f1f5f9;
             border-radius: 6px;
             text-align: left;
-            overflow-wrap: anywhere;
         }
 
         .task-text {
             flex: 1;
+            overflow-wrap: anywhere;
         }
 
         .completed {
             text-decoration: line-through;
-            color: gray;
+            color: #64748b;
         }
 
         .delete-button {
-            background-color: #c62828;
+            background: #c62828;
         }
 
-        .delete-button:hover {
-            background-color: #991b1b;
+        #emptyMessage {
+            color: #64748b;
+        }
+
+        @media (max-width: 420px) {
+            body {
+                padding: 20px 12px;
+            }
+
+            .task-container {
+                padding: 16px;
+            }
+
+            form {
+                flex-wrap: wrap;
+            }
+
+            #taskInput {
+                flex-basis: 100%;
+            }
         }
     </style>
 </head>
@@ -88,7 +112,7 @@
     <h1>My Task Manager</h1>
     <p>Organize your work. Complete your goals.</p>
 
-    <div class="task-container">
+    <main class="task-container">
         <h2>My Tasks</h2>
 
         <form id="taskForm">
@@ -102,10 +126,10 @@
             <button type="submit">Add Task</button>
         </form>
 
-        <p id="taskCount">0 tasks</p>
+        <p id="taskCount">0 tasks · 0 completed</p>
         <ul id="taskList"></ul>
         <p id="emptyMessage">No tasks yet. Add your first task!</p>
-    </div>
+    </main>
 
     <script>
         const taskForm = document.getElementById("taskForm");
@@ -114,7 +138,38 @@
         const taskCount = document.getElementById("taskCount");
         const emptyMessage = document.getElementById("emptyMessage");
 
-        let tasks = [];
+        function loadTasks() {
+            try {
+                const saved = localStorage.getItem("myTaskManagerTasks");
+                const parsed = saved ? JSON.parse(saved) : [];
+
+                if (!Array.isArray(parsed)) {
+                    return [];
+                }
+
+                return parsed.filter(function(task) {
+                    return task &&
+                        typeof task.id === "number" &&
+                        typeof task.text === "string" &&
+                        typeof task.completed === "boolean";
+                });
+            } catch (error) {
+                return [];
+            }
+        }
+
+        let tasks = loadTasks();
+
+        function saveTasks() {
+            try {
+                localStorage.setItem(
+                    "myTaskManagerTasks",
+                    JSON.stringify(tasks)
+                );
+            } catch (error) {
+                alert("Could not save tasks in this browser.");
+            }
+        }
 
         function renderTasks() {
             taskList.replaceChildren();
@@ -132,6 +187,7 @@
 
                 checkbox.addEventListener("change", function() {
                     task.completed = checkbox.checked;
+                    saveTasks();
                     renderTasks();
                 });
 
@@ -153,6 +209,7 @@
                         return item.id !== task.id;
                     });
 
+                    saveTasks();
                     renderTasks();
                 });
 
@@ -161,11 +218,9 @@
             });
 
             const total = tasks.length;
-            const completed = tasks.filter(
-                function(task) {
-                    return task.completed;
-                }
-            ).length;
+            const completed = tasks.filter(function(task) {
+                return task.completed;
+            }).length;
 
             taskCount.textContent =
                 total + " tasks · " + completed + " completed";
@@ -190,8 +245,10 @@
                 completed: false
             });
 
-            taskInput.value = "";
+            saveTasks();
             renderTasks();
+
+            taskInput.value = "";
             taskInput.focus();
         });
 
