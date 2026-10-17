@@ -7,46 +7,74 @@
     <title>My Task Manager</title>
 
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            background-color: #eaf2ff;
+            background: #eaf2ff;
             font-family: Arial, sans-serif;
-            text-align: center;
             margin: 0;
-            padding: 40px 20px;
+            padding: 40px 16px;
+            color: #1e293b;
+        }
+
+        h1, .subtitle {
+            text-align: center;
         }
 
         h1 {
             color: #173b75;
         }
 
+        .subtitle {
+            color: #64748b;
+        }
+
         .task-container {
-            max-width: 550px;
-            margin: 30px auto;
-            padding: 25px;
+            max-width: 680px;
+            margin: 28px auto;
+            padding: 24px;
             background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 16px #00000012;
+            border-radius: 14px;
+            box-shadow: 0 4px 20px #00000010;
         }
 
-        form {
-            display: flex;
-            gap: 8px;
+        .task-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
         }
 
-        #taskInput {
-            flex: 1;
-            min-width: 0;
-            padding: 12px;
+        .task-form input,
+        .task-form select,
+        button {
+            width: 100%;
+            padding: 11px;
             border: 1px solid #cbd5e1;
-            border-radius: 6px;
+            border-radius: 7px;
+            font: inherit;
+        }
+
+        .task-form input,
+        .task-form select {
+            background: white;
+        }
+
+        .task-form input:focus,
+        .task-form select:focus {
+            outline: 2px solid #93c5fd;
+            outline-offset: 1px;
+        }
+
+        .task-name {
+            grid-column: 1 / -1;
         }
 
         button {
-            padding: 10px 14px;
             background: #2457a7;
             color: white;
             border: none;
-            border-radius: 6px;
             cursor: pointer;
         }
 
@@ -54,25 +82,46 @@
             background: #173b75;
         }
 
+        .add-button {
+            grid-column: 1 / -1;
+        }
+
+        .summary {
+            margin: 22px 0 12px;
+            color: #475569;
+        }
+
         ul {
-            list-style: none;
             padding: 0;
+            list-style: none;
         }
 
         li {
             display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 12px;
-            padding: 12px;
-            background: #f1f5f9;
-            border-radius: 6px;
-            text-align: left;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px;
+            margin: 12px 0;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 9px;
         }
 
-        .task-text {
+        .task-check {
+            width: 18px;
+            height: 18px;
+            margin-top: 3px;
+            flex-shrink: 0;
+        }
+
+        .task-details {
             flex: 1;
+            min-width: 0;
+        }
+
+        .task-title {
             overflow-wrap: anywhere;
+            font-weight: 600;
         }
 
         .completed {
@@ -80,29 +129,75 @@
             color: #64748b;
         }
 
+        .task-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+            font-size: 12px;
+            color: #475569;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 20px;
+            background: #e2e8f0;
+        }
+
+        .priority-High {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .priority-Medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .priority-Low {
+            background: #dcfce7;
+            color: #166534;
+        }
+
         .delete-button {
+            width: auto;
+            padding: 8px 10px;
             background: #c62828;
+            flex-shrink: 0;
+        }
+
+        .delete-button:hover {
+            background: #991b1b;
         }
 
         #emptyMessage {
             color: #64748b;
+            text-align: center;
+            padding: 18px 0;
         }
 
-        @media (max-width: 420px) {
+        @media (max-width: 480px) {
             body {
-                padding: 20px 12px;
+                padding: 22px 12px;
             }
 
             .task-container {
                 padding: 16px;
             }
 
-            form {
-                flex-wrap: wrap;
+            .task-form {
+                grid-template-columns: 1fr;
             }
 
-            #taskInput {
-                flex-basis: 100%;
+            .task-name,
+            .add-button {
+                grid-column: auto;
+            }
+
+            li {
+                gap: 8px;
+                padding: 10px;
             }
         }
     </style>
@@ -110,23 +205,39 @@
 
 <body>
     <h1>My Task Manager</h1>
-    <p>Organize your work. Complete your goals.</p>
+    <p class="subtitle">Organize your work. Complete your goals.</p>
 
     <main class="task-container">
         <h2>My Tasks</h2>
 
-        <form id="taskForm">
+        <form id="taskForm" class="task-form">
             <input
+                class="task-name"
                 type="text"
                 id="taskInput"
-                placeholder="Enter a task..."
-                aria-label="New task"
+                placeholder="What do you need to do?"
+                aria-label="Task name"
                 maxlength="200"
+                required
             >
-            <button type="submit">Add Task</button>
+
+            <select id="taskPriority" aria-label="Task priority">
+                <option value="Low">Low priority</option>
+                <option value="Medium" selected>Medium priority</option>
+                <option value="High">High priority</option>
+            </select>
+
+            <input
+                type="date"
+                id="taskDueDate"
+                aria-label="Task due date"
+            >
+
+            <button type="submit" class="add-button">Add Task</button>
         </form>
 
-        <p id="taskCount">0 tasks · 0 completed</p>
+        <p id="taskCount" class="summary">0 tasks · 0 completed</p>
+
         <ul id="taskList"></ul>
         <p id="emptyMessage">No tasks yet. Add your first task!</p>
     </main>
@@ -134,6 +245,8 @@
     <script>
         const taskForm = document.getElementById("taskForm");
         const taskInput = document.getElementById("taskInput");
+        const taskPriority = document.getElementById("taskPriority");
+        const taskDueDate = document.getElementById("taskDueDate");
         const taskList = document.getElementById("taskList");
         const taskCount = document.getElementById("taskCount");
         const emptyMessage = document.getElementById("emptyMessage");
@@ -152,6 +265,16 @@
                         typeof task.id === "number" &&
                         typeof task.text === "string" &&
                         typeof task.completed === "boolean";
+                }).map(function(task) {
+                    return {
+                        id: task.id,
+                        text: task.text,
+                        completed: task.completed,
+                        priority: ["Low", "Medium", "High"].includes(task.priority)
+                            ? task.priority : "Medium",
+                        dueDate: typeof task.dueDate === "string"
+                            ? task.dueDate : ""
+                    };
                 });
             } catch (error) {
                 return [];
@@ -179,6 +302,7 @@
 
                 const checkbox = document.createElement("input");
                 checkbox.type = "checkbox";
+                checkbox.className = "task-check";
                 checkbox.checked = task.completed;
                 checkbox.setAttribute(
                     "aria-label",
@@ -191,18 +315,39 @@
                     renderTasks();
                 });
 
-                const taskText = document.createElement("span");
-                taskText.className = "task-text";
-                taskText.textContent = task.text;
+                const details = document.createElement("div");
+                details.className = "task-details";
+
+                const title = document.createElement("div");
+                title.className = "task-title";
+                title.textContent = task.text;
 
                 if (task.completed) {
-                    taskText.classList.add("completed");
+                    title.classList.add("completed");
                 }
+
+                const meta = document.createElement("div");
+                meta.className = "task-meta";
+
+                const priority = document.createElement("span");
+                priority.className = "badge priority-" + task.priority;
+                priority.textContent = task.priority + " priority";
+                meta.appendChild(priority);
+
+                if (task.dueDate) {
+                    const due = document.createElement("span");
+                    due.className = "badge";
+                    due.textContent = "Due: " + task.dueDate;
+                    meta.appendChild(due);
+                }
+
+                details.append(title, meta);
 
                 const deleteButton = document.createElement("button");
                 deleteButton.type = "button";
-                deleteButton.textContent = "Delete";
                 deleteButton.className = "delete-button";
+                deleteButton.textContent = "Delete";
+                deleteButton.setAttribute("aria-label", "Delete " + task.text);
 
                 deleteButton.addEventListener("click", function() {
                     tasks = tasks.filter(function(item) {
@@ -213,7 +358,7 @@
                     renderTasks();
                 });
 
-                li.append(checkbox, taskText, deleteButton);
+                li.append(checkbox, details, deleteButton);
                 taskList.appendChild(li);
             });
 
@@ -233,7 +378,7 @@
 
             const text = taskInput.value.trim();
 
-            if (text === "") {
+            if (!text) {
                 alert("Please enter a task!");
                 taskInput.focus();
                 return;
@@ -242,13 +387,15 @@
             tasks.push({
                 id: Date.now() + Math.random(),
                 text: text,
-                completed: false
+                completed: false,
+                priority: taskPriority.value,
+                dueDate: taskDueDate.value
             });
 
             saveTasks();
             renderTasks();
 
-            taskInput.value = "";
+            taskForm.reset();
             taskInput.focus();
         });
 
