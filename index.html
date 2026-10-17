@@ -18,7 +18,7 @@
     }
 
     .container {
-      max-width: 750px;
+      max-width: 800px;
       margin: auto;
       background: white;
       padding: 28px;
@@ -26,17 +26,8 @@
       box-shadow: 0 8px 25px rgba(30, 64, 175, 0.10);
     }
 
-    h1 {
-      text-align: center;
-      color: #1d4ed8;
-      margin-top: 0;
-    }
-
-    .subtitle {
-      text-align: center;
-      color: #64748b;
-      margin-bottom: 25px;
-    }
+    h1 { text-align: center; color: #1d4ed8; margin-top: 0; }
+    .subtitle { text-align: center; color: #64748b; margin-bottom: 25px; }
 
     form {
       display: grid;
@@ -78,11 +69,7 @@
       margin-bottom: 18px;
     }
 
-    .search-box {
-      width: 100%;
-      margin-bottom: 16px;
-      padding: 12px;
-    }
+    .search-box { width: 100%; margin-bottom: 16px; }
 
     .filters {
       display: flex;
@@ -91,23 +78,11 @@
       margin-bottom: 18px;
     }
 
-    .filter-btn {
-      background: #e2e8f0;
-      color: #334155;
-    }
-
+    .filter-btn { background: #e2e8f0; color: #334155; }
     .filter-btn:hover { background: #cbd5e1; }
+    .filter-btn.active { background: #2563eb; color: white; }
 
-    .filter-btn.active {
-      background: #2563eb;
-      color: white;
-    }
-
-    #taskList {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
+    #taskList { list-style: none; padding: 0; margin: 0; }
 
     .task {
       display: flex;
@@ -124,15 +99,8 @@
       flex-shrink: 0;
     }
 
-    .task-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .task-name {
-      font-weight: bold;
-      overflow-wrap: anywhere;
-    }
+    .task-info { flex: 1; min-width: 0; }
+    .task-name { font-weight: bold; overflow-wrap: anywhere; }
 
     .completed .task-name {
       text-decoration: line-through;
@@ -148,34 +116,44 @@
       color: #64748b;
     }
 
-    .badge {
-      padding: 4px 8px;
-      border-radius: 20px;
-      font-weight: bold;
-    }
-
+    .badge { padding: 4px 8px; border-radius: 20px; font-weight: bold; }
     .High { background: #fee2e2; color: #b91c1c; }
     .Medium { background: #fef3c7; color: #92400e; }
     .Low { background: #dcfce7; color: #166534; }
 
-    .delete-btn {
-      background: #fee2e2;
-      color: #b91c1c;
-      padding: 8px 10px;
+    .task-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
     }
 
+    .edit-btn { background: #dbeafe; color: #1d4ed8; padding: 8px 10px; }
+    .edit-btn:hover { background: #bfdbfe; }
+    .delete-btn { background: #fee2e2; color: #b91c1c; padding: 8px 10px; }
     .delete-btn:hover { background: #fecaca; }
 
-    .empty {
-      text-align: center;
-      color: #64748b;
-      padding: 25px 5px;
+    .empty { text-align: center; color: #64748b; padding: 25px 5px; }
+
+    .edit-panel {
+      margin-top: 10px;
+      padding: 12px;
+      border: 1px solid #bfdbfe;
+      background: #f8fbff;
+      border-radius: 10px;
     }
 
-    @media (max-width: 650px) {
+    .edit-panel input, .edit-panel select { width: 100%; margin-bottom: 8px; }
+
+    .edit-actions { display: flex; gap: 8px; }
+    .cancel-btn { background: #e2e8f0; color: #334155; }
+
+    @media (max-width: 700px) {
       form { grid-template-columns: 1fr; }
       .container { padding: 20px; }
       .stats { flex-direction: column; }
+      .task { flex-wrap: wrap; }
+      .task-info { min-width: 60%; }
+      .task-actions { margin-left: 30px; }
     }
   </style>
 </head>
@@ -186,8 +164,8 @@
     <p class="subtitle">Organize your work. Track your progress.</p>
 
     <form id="taskForm">
-      <input type="text" id="taskInput"
-        placeholder="Enter a new task..." aria-label="Task name" required>
+      <input type="text" id="taskInput" placeholder="Enter a new task..."
+        aria-label="Task name" required>
 
       <select id="taskPriority" aria-label="Task priority">
         <option value="High">High priority</option>
@@ -205,13 +183,8 @@
       <span>Completed: <strong id="completedCount">0</strong></span>
     </section>
 
-    <input
-      type="search"
-      id="searchInput"
-      class="search-box"
-      placeholder="Search tasks..."
-      aria-label="Search tasks"
-    >
+    <input type="search" id="searchInput" class="search-box"
+      placeholder="Search tasks..." aria-label="Search tasks">
 
     <div class="filters" aria-label="Filter tasks">
       <button type="button" class="filter-btn active" data-filter="All">All Tasks</button>
@@ -242,10 +215,7 @@
 
     function loadTasks() {
       try {
-        const saved = JSON.parse(
-          localStorage.getItem("myTaskManagerTasks")
-        );
-
+        const saved = JSON.parse(localStorage.getItem("myTaskManagerTasks"));
         if (!Array.isArray(saved)) return [];
 
         return saved
@@ -265,10 +235,7 @@
 
     function saveTasks() {
       try {
-        localStorage.setItem(
-          "myTaskManagerTasks",
-          JSON.stringify(tasks)
-        );
+        localStorage.setItem("myTaskManagerTasks", JSON.stringify(tasks));
       } catch (error) {
         alert("Could not save tasks in this browser.");
       }
@@ -278,16 +245,13 @@
       taskList.replaceChildren();
 
       totalCount.textContent = tasks.length;
-      pendingCount.textContent =
-        tasks.filter(task => !task.completed).length;
-      completedCount.textContent =
-        tasks.filter(task => task.completed).length;
+      pendingCount.textContent = tasks.filter(task => !task.completed).length;
+      completedCount.textContent = tasks.filter(task => task.completed).length;
 
       const searchText = searchInput.value.trim().toLowerCase();
 
       const filteredTasks = tasks.filter(task => {
         const matchesSearch = task.text.toLowerCase().includes(searchText);
-
         const matchesStatus =
           currentFilter === "All" ||
           (currentFilter === "Pending" && !task.completed) ||
@@ -296,17 +260,14 @@
         return matchesSearch && matchesStatus;
       });
 
-      emptyMessage.style.display =
-        filteredTasks.length === 0 ? "block" : "none";
+      emptyMessage.style.display = filteredTasks.length === 0 ? "block" : "none";
 
       if (filteredTasks.length === 0) {
-        if (tasks.length === 0) {
-          emptyMessage.textContent = "No tasks yet. Add your first task!";
-        } else if (searchText !== "") {
-          emptyMessage.textContent = "No tasks match your search.";
-        } else {
-          emptyMessage.textContent = "No tasks in this filter.";
-        }
+        emptyMessage.textContent = tasks.length === 0
+          ? "No tasks yet. Add your first task!"
+          : searchText !== ""
+            ? "No tasks match your search."
+            : "No tasks in this filter.";
       }
 
       filteredTasks.forEach(task => {
@@ -347,19 +308,105 @@
 
         info.append(name, meta);
 
+        const actions = document.createElement("div");
+        actions.className = "task-actions";
+
+        const editButton = document.createElement("button");
+        editButton.type = "button";
+        editButton.className = "edit-btn";
+        editButton.textContent = "Edit";
+
         const deleteButton = document.createElement("button");
         deleteButton.type = "button";
         deleteButton.className = "delete-btn";
         deleteButton.textContent = "Delete";
-        deleteButton.setAttribute("aria-label", "Delete " + task.text);
 
+        editButton.addEventListener("click", () => {
+          const existingPanel = item.querySelector(".edit-panel");
+
+          if (existingPanel) {
+            existingPanel.remove();
+            editButton.textContent = "Edit";
+            return;
+          }
+
+          const panel = document.createElement("div");
+          panel.className = "edit-panel";
+
+          const editName = document.createElement("input");
+          editName.type = "text";
+          editName.value = task.text;
+          editName.maxLength = 200;
+          editName.setAttribute("aria-label", "Edit task name");
+          editName.required = true;
+
+          const editPriority = document.createElement("select");
+          editPriority.setAttribute("aria-label", "Edit priority");
+
+          ["High", "Medium", "Low"].forEach(value => {
+            const option = document.createElement("option");
+            option.value = value;
+            option.textContent = value + " priority";
+            editPriority.appendChild(option);
+          });
+          editPriority.value = task.priority;
+
+          const editDueDate = document.createElement("input");
+          editDueDate.type = "date";
+          editDueDate.value = task.dueDate;
+          editDueDate.setAttribute("aria-label", "Edit due date");
+
+          const editActions = document.createElement("div");
+          editActions.className = "edit-actions";
+
+          const saveButton = document.createElement("button");
+          saveButton.type = "button";
+          saveButton.textContent = "Save changes";
+
+          const cancelButton = document.createElement("button");
+          cancelButton.type = "button";
+          cancelButton.className = "cancel-btn";
+          cancelButton.textContent = "Cancel";
+
+          saveButton.addEventListener("click", () => {
+            const newName = editName.value.trim();
+
+            if (!newName) {
+              alert("Task name cannot be empty.");
+              editName.focus();
+              return;
+            }
+
+            task.text = newName;
+            task.priority = editPriority.value;
+            task.dueDate = editDueDate.value;
+
+            saveTasks();
+            renderTasks();
+          });
+
+          cancelButton.addEventListener("click", () => {
+            panel.remove();
+            editButton.textContent = "Edit";
+          });
+
+          editActions.append(saveButton, cancelButton);
+          panel.append(editName, editPriority, editDueDate, editActions);
+          info.appendChild(panel);
+
+          editButton.textContent = "Close";
+          editName.focus();
+        });
+
+        deleteButton.setAttribute("aria-label", "Delete " + task.text);
         deleteButton.addEventListener("click", () => {
-          tasks = tasks.filter(item => item.id !== task.id);
+          tasks = tasks.filter(entry => entry.id !== task.id);
           saveTasks();
           renderTasks();
         });
 
-        item.append(checkbox, info, deleteButton);
+        actions.append(editButton, deleteButton);
+        item.append(checkbox, info, actions);
         taskList.appendChild(item);
       });
     }
@@ -372,7 +419,7 @@
 
       tasks.push({
         id: Date.now() + Math.random(),
-        text: text,
+        text,
         completed: false,
         priority: taskPriority.value,
         dueDate: taskDueDate.value
