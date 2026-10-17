@@ -155,7 +155,6 @@
       border: none;
       cursor: pointer;
       font-weight: bold;
-      transition: opacity 0.2s;
     }
 
     button:hover {
@@ -204,7 +203,7 @@
       padding: 16px;
       border: 1px solid #e2e8f0;
       border-radius: 12px;
-      background: #fff;
+      background: white;
     }
 
     .task-check {
@@ -257,6 +256,26 @@
       color: #166534;
     }
 
+    .status-overdue {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .status-today {
+      background: #ffedd5;
+      color: #9a3412;
+    }
+
+    .status-upcoming {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .status-completed {
+      background: #dcfce7;
+      color: #166534;
+    }
+
     .completed-task .task-title {
       text-decoration: line-through;
       color: #94a3b8;
@@ -286,14 +305,7 @@
     }
 
     .edit-panel {
-      display: grid;
-      gap: 9px;
       margin-top: 12px;
-    }
-
-    .edit-actions {
-      display: flex;
-      gap: 8px;
     }
 
     .secondary-btn {
@@ -313,11 +325,7 @@
         grid-template-columns: 1fr;
       }
 
-      .task-form {
-        grid-template-columns: 1fr;
-      }
-
-      .controls {
+      .task-form, .controls {
         grid-template-columns: 1fr;
       }
 
@@ -349,12 +357,10 @@
         <p>Total Tasks</p>
         <h2 id="totalTasks">0</h2>
       </div>
-
       <div class="stat-card completed">
         <p>Completed</p>
         <h2 id="completedTasks">0</h2>
       </div>
-
       <div class="stat-card pending">
         <p>Pending</p>
         <h2 id="pendingTasks">0</h2>
@@ -366,19 +372,17 @@
         <h2>Overall Progress</h2>
         <span id="percentage">0%</span>
       </div>
-
       <div
         class="progress-track"
+        id="progressTrack"
         role="progressbar"
         aria-label="Task completion progress"
         aria-valuemin="0"
         aria-valuemax="100"
         aria-valuenow="0"
-        id="progressTrack"
       >
         <div id="progressBar"></div>
       </div>
-
       <p id="progressMessage" aria-live="polite">
         Add a task to start tracking your progress.
       </p>
@@ -386,29 +390,21 @@
 
     <section class="panel">
       <h2 id="formHeading">Add a New Task</h2>
-
       <form id="taskForm" class="task-form">
         <input
           id="taskInput"
           type="text"
-          placeholder="What do you need to do?"
           maxlength="200"
+          placeholder="What do you need to do?"
           aria-label="Task name"
           required
         >
-
         <select id="priorityInput" aria-label="Task priority">
           <option value="Low">Low Priority</option>
           <option value="Medium" selected>Medium Priority</option>
           <option value="High">High Priority</option>
         </select>
-
-        <input
-          id="dateInput"
-          type="date"
-          aria-label="Due date"
-        >
-
+        <input id="dateInput" type="date" aria-label="Due date">
         <button class="primary-btn" id="submitBtn" type="submit">
           Add Task
         </button>
@@ -425,7 +421,6 @@
           placeholder="Search tasks..."
           aria-label="Search tasks"
         >
-
         <select id="sortInput" aria-label="Sort tasks">
           <option value="created">Recently Added</option>
           <option value="priority">Priority: High to Low</option>
@@ -435,15 +430,9 @@
       </div>
 
       <div class="filters" aria-label="Filter tasks">
-        <button class="filter-btn active" data-filter="all" type="button">
-          All
-        </button>
-        <button class="filter-btn" data-filter="pending" type="button">
-          Pending
-        </button>
-        <button class="filter-btn" data-filter="completed" type="button">
-          Completed
-        </button>
+        <button class="filter-btn active" data-filter="all" type="button">All</button>
+        <button class="filter-btn" data-filter="pending" type="button">Pending</button>
+        <button class="filter-btn" data-filter="completed" type="button">Completed</button>
       </div>
 
       <div id="taskList"></div>
@@ -472,7 +461,6 @@
     const progressBar = document.getElementById("progressBar");
     const progressTrack = document.getElementById("progressTrack");
     const progressMessage = document.getElementById("progressMessage");
-
     const formHeading = document.getElementById("formHeading");
     const submitBtn = document.getElementById("submitBtn");
 
@@ -484,9 +472,7 @@
       try {
         const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
 
-        if (!Array.isArray(saved)) {
-          return [];
-        }
+        if (!Array.isArray(saved)) return [];
 
         return saved
           .filter(task => task && typeof task === "object")
@@ -495,8 +481,7 @@
             text: String(task.text ?? ""),
             completed: Boolean(task.completed),
             priority: ["High", "Medium", "Low"].includes(task.priority)
-              ? task.priority
-              : "Medium",
+              ? task.priority : "Medium",
             dueDate: String(task.dueDate ?? ""),
             createdAt: Number(task.createdAt) || index
           }))
@@ -511,9 +496,40 @@
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
       } catch (error) {
-        alert("Your changes could not be saved in this browser.");
+        alert("Changes could not be saved in this browser.");
         console.error("Could not save tasks:", error);
       }
+    }
+
+    // Format today's date using local time, not UTC.
+    function getTodayString() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+      const day = String(now.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function getDueStatus(task) {
+      if (task.completed) {
+        return { text: "Completed", className: "status-completed" };
+      }
+
+      if (!task.dueDate) {
+        return null;
+      }
+
+      const today = getTodayString();
+
+      if (task.dueDate < today) {
+        return { text: "Overdue", className: "status-overdue" };
+      }
+
+      if (task.dueDate === today) {
+        return { text: "Due Today", className: "status-today" };
+      }
+
+      return { text: "Upcoming", className: "status-upcoming" };
     }
 
     function updateDashboard() {
@@ -536,7 +552,7 @@
           "Add a task to start tracking your progress.";
       } else if (percentage === 100) {
         progressMessage.textContent =
-          "Amazing! All your tasks are completed. 🎉";
+          "Amazing! All your tasks are completed!";
       } else if (percentage >= 75) {
         progressMessage.textContent =
           "Excellent progress! You're almost there.";
@@ -548,7 +564,7 @@
           "Great start! Every completed task counts.";
       } else {
         progressMessage.textContent =
-          "Your journey starts here. Complete a task to make progress.";
+          "Complete a task to start making progress.";
       }
     }
 
@@ -565,9 +581,8 @@
 
       const searchTerm = searchInput.value.trim().toLowerCase();
 
-      let visibleTasks = tasks.filter(task => {
+      const visibleTasks = tasks.filter(task => {
         const matchesSearch = task.text.toLowerCase().includes(searchTerm);
-
         const matchesFilter =
           currentFilter === "all" ||
           (currentFilter === "pending" && !task.completed) ||
@@ -603,14 +618,9 @@
       if (visibleTasks.length === 0) {
         const empty = document.createElement("div");
         empty.className = "empty-state";
-
-        if (tasks.length === 0) {
-          empty.textContent = "No tasks yet. Add your first task above!";
-        } else {
-          empty.textContent =
-            "No tasks match your search or selected filter.";
-        }
-
+        empty.textContent = tasks.length === 0
+          ? "No tasks yet. Add your first task above!"
+          : "No tasks match your search or selected filter.";
         taskList.appendChild(empty);
         return;
       }
@@ -628,6 +638,7 @@
         checkbox.className = "task-check";
         checkbox.checked = task.completed;
         checkbox.setAttribute("aria-label", "Mark task completed");
+
         checkbox.addEventListener("change", () => {
           updateTask(task.id, { completed: checkbox.checked });
         });
@@ -642,6 +653,7 @@
 
         const meta = document.createElement("div");
         meta.className = "task-meta";
+
         meta.appendChild(
           createTag(task.priority + " Priority", "priority-" + task.priority)
         );
@@ -650,9 +662,13 @@
           meta.appendChild(createTag("Due: " + task.dueDate));
         }
 
-        meta.appendChild(
-          createTag(task.completed ? "Completed" : "Pending")
-        );
+        const status = getDueStatus(task);
+
+        if (status) {
+          meta.appendChild(createTag(status.text, status.className));
+        } else {
+          meta.appendChild(createTag("No Deadline"));
+        }
 
         info.appendChild(meta);
 
@@ -663,17 +679,13 @@
         editBtn.type = "button";
         editBtn.className = "edit-btn";
         editBtn.textContent = "Edit";
-        editBtn.addEventListener("click", () => {
-          showEditForm(task, info);
-        });
+        editBtn.addEventListener("click", () => startEditing(task));
 
         const deleteBtn = document.createElement("button");
         deleteBtn.type = "button";
         deleteBtn.className = "delete-btn";
         deleteBtn.textContent = "Delete";
-        deleteBtn.addEventListener("click", () => {
-          deleteTask(task.id);
-        });
+        deleteBtn.addEventListener("click", () => deleteTask(task.id));
 
         actions.append(editBtn, deleteBtn);
         card.append(checkbox, info, actions);
@@ -695,41 +707,23 @@
 
       if (editingId === id) {
         resetForm();
+        return;
       }
 
       saveTasks();
       renderTasks();
     }
 
-    function showEditForm(task, info) {
-      if (editingId !== null) {
-        resetForm();
-      }
-
+    function startEditing(task) {
       editingId = task.id;
       taskInput.value = task.text;
       priorityInput.value = task.priority;
       dateInput.value = task.dueDate;
       formHeading.textContent = "Edit Task";
       submitBtn.textContent = "Save Changes";
+
+      taskForm.scrollIntoView({ behavior: "smooth", block: "center" });
       taskInput.focus();
-
-      const panel = document.createElement("div");
-      panel.className = "edit-panel";
-
-      const note = document.createElement("p");
-      note.textContent = "Editing this task:";
-      note.style.color = "#64748b";
-      note.style.fontSize = "13px";
-
-      const cancelBtn = document.createElement("button");
-      cancelBtn.type = "button";
-      cancelBtn.className = "secondary-btn";
-      cancelBtn.textContent = "Cancel Edit";
-      cancelBtn.addEventListener("click", resetForm);
-
-      panel.append(note, cancelBtn);
-      info.appendChild(panel);
     }
 
     function resetForm() {
