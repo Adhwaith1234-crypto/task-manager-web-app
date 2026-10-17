@@ -1,30 +1,201 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <html lang="en">
-<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Task Manager</title>
+
     <style>
         body {
             background-color: lightblue;
             font-family: Arial, sans-serif;
             text-align: center;
+            margin: 0;
+            padding: 40px 20px;
         }
 
         h1 {
             color: darkblue;
         }
-    </style>
 
-    <!-- Your existing code continues below -->
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My First Webpage</title>
+        .task-container {
+            max-width: 500px;
+            margin: 30px auto;
+            padding: 25px;
+            background-color: white;
+            border-radius: 12px;
+        }
+
+        input {
+            width: 65%;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 14px;
+            background-color: darkblue;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #163e8a;
+        }
+
+        ul {
+            padding: 0;
+            list-style: none;
+        }
+
+        li {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 12px;
+            padding: 12px;
+            background-color: #f1f5f9;
+            border-radius: 6px;
+            text-align: left;
+            overflow-wrap: anywhere;
+        }
+
+        .task-text {
+            flex: 1;
+        }
+
+        .completed {
+            text-decoration: line-through;
+            color: gray;
+        }
+
+        .delete-button {
+            background-color: #c62828;
+        }
+
+        .delete-button:hover {
+            background-color: #991b1b;
+        }
+    </style>
 </head>
+
 <body>
     <h1>My Task Manager</h1>
-    <p>My web development journey starts here.</p>
-   <button onclick="alert('Button clicked!')">
-    Add Task
-</button>
+    <p>Organize your work. Complete your goals.</p>
+
+    <div class="task-container">
+        <h2>My Tasks</h2>
+
+        <form id="taskForm">
+            <input
+                type="text"
+                id="taskInput"
+                placeholder="Enter a task..."
+                aria-label="New task"
+                maxlength="200"
+            >
+            <button type="submit">Add Task</button>
+        </form>
+
+        <p id="taskCount">0 tasks</p>
+        <ul id="taskList"></ul>
+        <p id="emptyMessage">No tasks yet. Add your first task!</p>
+    </div>
+
+    <script>
+        const taskForm = document.getElementById("taskForm");
+        const taskInput = document.getElementById("taskInput");
+        const taskList = document.getElementById("taskList");
+        const taskCount = document.getElementById("taskCount");
+        const emptyMessage = document.getElementById("emptyMessage");
+
+        let tasks = [];
+
+        function renderTasks() {
+            taskList.replaceChildren();
+
+            tasks.forEach(function(task) {
+                const li = document.createElement("li");
+
+                const checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.checked = task.completed;
+                checkbox.setAttribute(
+                    "aria-label",
+                    "Mark " + task.text + " as completed"
+                );
+
+                checkbox.addEventListener("change", function() {
+                    task.completed = checkbox.checked;
+                    renderTasks();
+                });
+
+                const taskText = document.createElement("span");
+                taskText.className = "task-text";
+                taskText.textContent = task.text;
+
+                if (task.completed) {
+                    taskText.classList.add("completed");
+                }
+
+                const deleteButton = document.createElement("button");
+                deleteButton.type = "button";
+                deleteButton.textContent = "Delete";
+                deleteButton.className = "delete-button";
+
+                deleteButton.addEventListener("click", function() {
+                    tasks = tasks.filter(function(item) {
+                        return item.id !== task.id;
+                    });
+
+                    renderTasks();
+                });
+
+                li.append(checkbox, taskText, deleteButton);
+                taskList.appendChild(li);
+            });
+
+            const total = tasks.length;
+            const completed = tasks.filter(
+                function(task) {
+                    return task.completed;
+                }
+            ).length;
+
+            taskCount.textContent =
+                total + " tasks · " + completed + " completed";
+
+            emptyMessage.hidden = total !== 0;
+        }
+
+        taskForm.addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const text = taskInput.value.trim();
+
+            if (text === "") {
+                alert("Please enter a task!");
+                taskInput.focus();
+                return;
+            }
+
+            tasks.push({
+                id: Date.now() + Math.random(),
+                text: text,
+                completed: false
+            });
+
+            taskInput.value = "";
+            renderTasks();
+            taskInput.focus();
+        });
+
+        renderTasks();
+    </script>
 </body>
 </html>
